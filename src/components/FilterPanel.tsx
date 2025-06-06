@@ -9,27 +9,73 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Wifi, Car, Home, Zap, Droplets, Wind, Utensils, Dumbbell } from 'lucide-react';
 
-const FilterPanel = () => {
+interface FilterPanelProps {
+  onFiltersChange: (filters: any) => void;
+}
+
+const FilterPanel = ({ onFiltersChange }: FilterPanelProps) => {
   const [priceRange, setPriceRange] = useState([5000, 50000]);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [propertyType, setPropertyType] = useState('all');
+  const [genderPreference, setGenderPreference] = useState('any');
+  const [occupancy, setOccupancy] = useState('any');
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
 
   const amenities = [
-    { id: 'wifi', label: 'Wi-Fi', icon: Wifi },
-    { id: 'parking', label: 'Parking', icon: Car },
-    { id: 'furnished', label: 'Furnished', icon: Home },
-    { id: 'ac', label: 'AC', icon: Wind },
-    { id: 'geyser', label: 'Geyser', icon: Zap },
-    { id: 'ro-water', label: 'RO Water', icon: Droplets },
-    { id: 'food', label: 'Food Included', icon: Utensils },
-    { id: 'gym', label: 'Gym', icon: Dumbbell },
+    { id: 'Wi-Fi', label: 'Wi-Fi', icon: Wifi },
+    { id: 'Parking', label: 'Parking', icon: Car },
+    { id: 'Furnished', label: 'Furnished', icon: Home },
+    { id: 'AC', label: 'AC', icon: Wind },
+    { id: 'Geyser', label: 'Geyser', icon: Zap },
+    { id: 'RO Water', label: 'RO Water', icon: Droplets },
+    { id: 'Food Included', label: 'Food Included', icon: Utensils },
+    { id: 'Gym', label: 'Gym', icon: Dumbbell },
   ];
 
   const handleAmenityChange = (amenityId: string, checked: boolean) => {
+    let newAmenities;
     if (checked) {
-      setSelectedAmenities([...selectedAmenities, amenityId]);
+      newAmenities = [...selectedAmenities, amenityId];
     } else {
-      setSelectedAmenities(selectedAmenities.filter(id => id !== amenityId));
+      newAmenities = selectedAmenities.filter(id => id !== amenityId);
     }
+    setSelectedAmenities(newAmenities);
+    emitFilterChange({ amenities: newAmenities });
+  };
+
+  const emitFilterChange = (newFilter: any = {}) => {
+    const filters = {
+      priceRange,
+      amenities: selectedAmenities,
+      propertyType,
+      genderPreference,
+      occupancy,
+      verifiedOnly,
+      ...newFilter
+    };
+    onFiltersChange(filters);
+  };
+
+  const handlePriceChange = (newPriceRange: number[]) => {
+    setPriceRange(newPriceRange);
+    emitFilterChange({ priceRange: newPriceRange });
+  };
+
+  const clearFilters = () => {
+    setPriceRange([5000, 50000]);
+    setSelectedAmenities([]);
+    setPropertyType('all');
+    setGenderPreference('any');
+    setOccupancy('any');
+    setVerifiedOnly(false);
+    onFiltersChange({
+      priceRange: [5000, 50000],
+      amenities: [],
+      propertyType: 'all',
+      genderPreference: 'any',
+      occupancy: 'any',
+      verifiedOnly: false
+    });
   };
 
   return (
@@ -39,16 +85,19 @@ const FilterPanel = () => {
           {/* Property Type */}
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700">Property Type</Label>
-            <Select>
+            <Select value={propertyType} onValueChange={(value) => {
+              setPropertyType(value);
+              emitFilterChange({ propertyType: value });
+            }}>
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="pg">PG</SelectItem>
-                <SelectItem value="room">Room</SelectItem>
-                <SelectItem value="apartment">Apartment</SelectItem>
-                <SelectItem value="studio">Studio</SelectItem>
+                <SelectItem value="PG">PG</SelectItem>
+                <SelectItem value="Room">Room</SelectItem>
+                <SelectItem value="Apartment">Apartment</SelectItem>
+                <SelectItem value="Studio">Studio</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -56,14 +105,17 @@ const FilterPanel = () => {
           {/* Gender Preference */}
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700">Gender</Label>
-            <Select>
+            <Select value={genderPreference} onValueChange={(value) => {
+              setGenderPreference(value);
+              emitFilterChange({ genderPreference: value });
+            }}>
               <SelectTrigger>
                 <SelectValue placeholder="Select preference" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="any">Any</SelectItem>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="Male">Male</SelectItem>
+                <SelectItem value="Female">Female</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -71,7 +123,10 @@ const FilterPanel = () => {
           {/* Occupancy */}
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700">Occupancy</Label>
-            <Select>
+            <Select value={occupancy} onValueChange={(value) => {
+              setOccupancy(value);
+              emitFilterChange({ occupancy: value });
+            }}>
               <SelectTrigger>
                 <SelectValue placeholder="Select occupancy" />
               </SelectTrigger>
@@ -88,7 +143,14 @@ const FilterPanel = () => {
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700">Verification</Label>
             <div className="flex items-center space-x-2 h-10">
-              <Checkbox id="verified" />
+              <Checkbox 
+                id="verified" 
+                checked={verifiedOnly}
+                onCheckedChange={(checked) => {
+                  setVerifiedOnly(checked as boolean);
+                  emitFilterChange({ verifiedOnly: checked });
+                }}
+              />
               <Label htmlFor="verified" className="text-sm">Verified only</Label>
             </div>
           </div>
@@ -101,7 +163,7 @@ const FilterPanel = () => {
           </Label>
           <Slider
             value={priceRange}
-            onValueChange={setPriceRange}
+            onValueChange={handlePriceChange}
             max={100000}
             min={1000}
             step={1000}
@@ -131,10 +193,10 @@ const FilterPanel = () => {
 
         {/* Action Buttons */}
         <div className="flex gap-3 mt-6 pt-4 border-t">
-          <Button variant="outline" className="flex-1">
+          <Button variant="outline" className="flex-1" onClick={clearFilters}>
             Clear Filters
           </Button>
-          <Button className="flex-1 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+          <Button className="flex-1 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700" onClick={() => emitFilterChange()}>
             Apply Filters
           </Button>
         </div>

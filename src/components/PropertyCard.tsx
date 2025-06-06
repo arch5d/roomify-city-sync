@@ -1,5 +1,5 @@
 
-import { Heart, MapPin, Star, Shield, Users, Home } from 'lucide-react';
+import { Heart, Star, Shield, Users } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,16 +20,22 @@ interface Property {
 
 interface PropertyCardProps {
   property: Property;
+  onHover?: (property: Property | null) => void;
 }
 
-const PropertyCard = ({ property }: PropertyCardProps) => {
+const PropertyCard = ({ property, onHover }: PropertyCardProps) => {
   return (
-    <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 bg-white">
+    <Card 
+      className="group overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 bg-white cursor-pointer"
+      onMouseEnter={() => onHover?.(property)}
+      onMouseLeave={() => onHover?.(null)}
+    >
       <div className="relative">
         <img 
           src={property.image} 
           alt={property.title}
           className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+          loading="lazy"
         />
         <div className="absolute top-3 left-3 flex gap-2">
           {property.verified && (
@@ -64,7 +70,6 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
         </div>
         
         <div className="flex items-center text-gray-600 mb-3">
-          <MapPin className="h-4 w-4 mr-1" />
           <span className="text-sm">{property.location}</span>
         </div>
         
