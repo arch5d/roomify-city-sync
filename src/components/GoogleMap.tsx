@@ -19,6 +19,13 @@ interface GoogleMapProps {
   selectedProperty?: Property | null;
 }
 
+// Declare global google types
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
+
 const GoogleMap = ({ properties, onPropertySelect, selectedProperty }: GoogleMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -27,7 +34,7 @@ const GoogleMap = ({ properties, onPropertySelect, selectedProperty }: GoogleMap
   useEffect(() => {
     if (!mapRef.current || !window.google) return;
 
-    const mapInstance = new google.maps.Map(mapRef.current, {
+    const mapInstance = new window.google.maps.Map(mapRef.current, {
       center: { lat: 12.9716, lng: 77.5946 }, // Bangalore center
       zoom: 11,
       styles: [
@@ -43,14 +50,14 @@ const GoogleMap = ({ properties, onPropertySelect, selectedProperty }: GoogleMap
   }, []);
 
   useEffect(() => {
-    if (!map || !properties.length) return;
+    if (!map || !properties.length || !window.google) return;
 
     // Clear existing markers
     markers.forEach(marker => marker.setMap(null));
 
     // Create new markers
     const newMarkers = properties.map(property => {
-      const marker = new google.maps.Marker({
+      const marker = new window.google.maps.Marker({
         position: { lat: property.latitude, lng: property.longitude },
         map: map,
         title: property.title,
@@ -68,8 +75,8 @@ const GoogleMap = ({ properties, onPropertySelect, selectedProperty }: GoogleMap
                 <text x="20" y="27" text-anchor="middle" fill="white" font-size="14" font-weight="bold">₹${Math.round(property.price/1000)}k</text>
               </svg>
             `),
-          scaledSize: new google.maps.Size(40, 40),
-          anchor: new google.maps.Point(20, 20)
+          scaledSize: new window.google.maps.Size(40, 40),
+          anchor: new window.google.maps.Point(20, 20)
         }
       });
 
@@ -84,7 +91,7 @@ const GoogleMap = ({ properties, onPropertySelect, selectedProperty }: GoogleMap
 
     // Fit bounds to show all markers
     if (properties.length > 0) {
-      const bounds = new google.maps.LatLngBounds();
+      const bounds = new window.google.maps.LatLngBounds();
       properties.forEach(property => {
         bounds.extend({ lat: property.latitude, lng: property.longitude });
       });
